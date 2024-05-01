@@ -3,6 +3,10 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 
+import 'package:test_flutter/pages/LoginPage.dart';
+import 'package:test_flutter/pages/ReportPage.dart';
+import 'package:test_flutter/SharedPreferencesService.dart';
+
 class QrReader extends StatefulWidget {
   const QrReader({super.key});
 
@@ -14,16 +18,7 @@ class _QrReaderState extends State<QrReader> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
-
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller?.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller?.resumeCamera();
-    }
-  }
+  bool isBreakfastSelected = false;
 
   @override
   Widget build(BuildContext context) {
@@ -44,65 +39,125 @@ class _QrReaderState extends State<QrReader> {
           ),
           Positioned(
             bottom: 20,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                color: Colors.grey[850],
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
+            child: Padding(
+              padding: EdgeInsets.all(
+                  8.0), // Add padding around the Positioned widget
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.all(8.0),
+                child: Card(
+                    color: Colors.transparent,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
                         Expanded(
-                          child: Text(
-                            result != null
-                                ? 'Result: ${result?.code}'
-                                : 'Scan code',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.tealAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          flex: 1,
+                          child: IconButton(
+                            onPressed: _handleSignOut,
+                            icon: Icon(Icons.logout, color: Colors.white),
                           ),
                         ),
-                        IconButton(
-                          onPressed: result != null && result!.code != null
-                              ? () {
-                                  Clipboard.setData(ClipboardData(
-                                      text: result!
-                                          .code!)); // Ensuring that 'code' is not null
-                                }
-                              : null,
-                          icon: Icon(
-                            Icons.copy,
-                            color: Colors.white,
+                        Expanded(
+                          flex: 3,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isBreakfastSelected ? 'Lunch' : 'Breakfast',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
+                              ),
+                              Switch(
+                                value: isBreakfastSelected,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    isBreakfastSelected = value;
+                                  });
+                                },
+                                activeColor: Colors.white,
+                                activeTrackColor: Colors.lightBlue,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: IconButton(
+                            onPressed: _showDialog,
+                            icon: Icon(Icons.add, color: Colors.white),
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
+                    )),
               ),
             ),
-          ),
+          )
         ],
       ),
     );
   }
 
+  void _handleSignOut() async {
+    await SharedPreferencesService.clearAllCredentials();
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+        (route) => false);
+  }
+
+  void _showDialog() {
+    TextEditingController _textFieldController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter name to be verified'),
+          content: TextField(
+            controller: _textFieldController,
+            decoration: InputDecoration(),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            TextButton(
+              child: Text('Verify'),
+              onPressed: () {
+                _navigateToReportPage(_textFieldController.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
+    this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
+      _navigateToReportPage(scanData.code!);
     });
+  }
+
+  void _navigateToReportPage(String qrCode) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportPage(
+          qrResult: qrCode,
+          onBack: () {
+            setState(
+                () {}); // Put any state reset or updates here as needed when returning from ReportPage
+          },
+        ),
+      ),
+    );
   }
 
   @override

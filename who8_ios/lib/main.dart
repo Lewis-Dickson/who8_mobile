@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'pages/QRScanPage.dart';
 import 'pages/QrReader.dart';
 import 'pages/LoginPage.dart';
 import 'pages/MealSelectionPage.dart';
@@ -25,7 +24,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginScreen(),
         '/mealSelect': (context) => MealSelectionPage(),
-        '/qrscan': (context) => QRScanPage(),
         '/qrreader': (context) => QrReader(),
       },
     );
