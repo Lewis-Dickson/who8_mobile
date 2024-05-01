@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:test_flutter/ApiService.dart';
-import 'package:test_flutter/SharedPreferencesService.dart';
+import 'package:Who8/ApiService.dart';
+import 'package:Who8/SharedPreferencesService.dart';
 
 class MealSelectionPage extends StatefulWidget {
   @override

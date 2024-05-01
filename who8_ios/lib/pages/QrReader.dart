@@ -3,9 +3,9 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 
-import 'package:test_flutter/pages/LoginPage.dart';
-import 'package:test_flutter/pages/ReportPage.dart';
-import 'package:test_flutter/SharedPreferencesService.dart';
+import 'package:Who8/pages/LoginPage.dart';
+import 'package:Who8/pages/ReportPage.dart';
+import 'package:Who8/SharedPreferencesService.dart';
 
 class QrReader extends StatefulWidget {
   const QrReader({super.key});
@@ -19,6 +19,7 @@ class _QrReaderState extends State<QrReader> {
   Barcode? result;
   QRViewController? controller;
   bool isBreakfastSelected = false;
+  bool redirectedToReportPage = false;
 
   @override
   Widget build(BuildContext context) {
@@ -141,11 +142,17 @@ class _QrReaderState extends State<QrReader> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      _navigateToReportPage(scanData.code!);
+      if (!redirectedToReportPage) {
+        // Check if redirection already occurred
+        _navigateToReportPage(scanData.code!);
+      }
     });
   }
 
   void _navigateToReportPage(String qrCode) {
+    setState(() {
+      redirectedToReportPage = true; // Set the flag to true
+    });
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -155,6 +162,7 @@ class _QrReaderState extends State<QrReader> {
             setState(
                 () {}); // Put any state reset or updates here as needed when returning from ReportPage
           },
+          scanMethod: 'QR',
         ),
       ),
     );

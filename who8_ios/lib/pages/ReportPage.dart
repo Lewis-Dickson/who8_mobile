@@ -3,13 +3,20 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:test_flutter/SharedPreferencesService.dart';
+import 'package:Who8/SharedPreferencesService.dart';
+import 'package:Who8/constant.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class ReportPage extends StatefulWidget {
   final String qrResult;
+  final String scanMethod;
   final Function() onBack;
 
-  const ReportPage({Key? key, required this.qrResult, required this.onBack})
+  const ReportPage(
+      {Key? key,
+      required this.qrResult,
+      required this.onBack,
+      required this.scanMethod})
       : super(key: key);
 
   @override
@@ -19,26 +26,24 @@ class ReportPage extends StatefulWidget {
 class _ReportPageState extends State<ReportPage> {
   bool isLoading = true;
   bool isSuccess = false;
-  late String phoneNumber;
-  late String loginInfo;
+  String responseMessage = '';
+  AudioPlayer audioPlayer = AudioPlayer();
+  String position = '';
 
   @override
   void initState() {
     super.initState();
-    _retrieveUserData();
     _callBackendAPI();
-  }
-
-  Future<void> _retrieveUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    phoneNumber = prefs.getString('phoneNumber') ?? '';
-    loginInfo = prefs.getString('loginInfo') ?? '';
   }
 
   Future<void> _callBackendAPI() async {
     try {
-      // Retrieve token from SharedPreferences
       final token = await SharedPreferencesService.getToken();
+      final phoneNumber = await SharedPreferencesService.getPhoneNumber() ?? '';
+      final loginInfo =
+          json.encode(await SharedPreferencesService.getLoginInfo());
+      final selectedMeal =
+          await SharedPreferencesService.getSelectedMeal() ?? '';
 
       // Check if token is null
       if (token == null) {
@@ -48,28 +53,47 @@ class _ReportPageState extends State<ReportPage> {
       // Prepare the data to send to the backend
       final data = {
         'qr_result': widget.qrResult,
+        'meal': selectedMeal,
         'device_time': DateTime.now().toIso8601String(),
-        'phone_number': await SharedPreferencesService.getPhoneNumber() ?? '',
+        'method': widget.scanMethod,
+        'uuid': await SharedPreferencesService.getPhoneNumber() ?? '',
         'login_info':
             json.encode(await SharedPreferencesService.getLoginInfo()),
         'token': token,
       };
 
       // Replace the URL with your actual backend API endpoint
-      final url = 'https://your-backend-api.com/qrscan';
+      final url = '$baseURL/scanNewQR';
+
+      final headers = {
+        'authorization': 'Bearer $token',
+        'Content-Type': 'application/json', // Add any other necessary headers
+      };
 
       // Make the HTTP POST request to the backend API
       final response = await http.post(
         Uri.parse(url),
-        body: data,
+        headers: headers,
+        body: json.encode(data),
       );
 
       // Check if the request was successful
       if (response.statusCode == 200) {
-        setState(() {
-          isSuccess = true;
-          isLoading = false;
-        });
+        var jsonResponse = jsonDecode(response.body);
+        String status = jsonResponse['status'];
+        String message = jsonResponse['message'];
+        position = jsonResponse['position'];
+        if (status == 'success') {
+          audioPlayer.play(AssetSource('assets/audio/beep_approved.mp3'));
+          setState(() {
+            isLoading = false;
+            responseMessage = message;
+          });
+        } else {
+          _showErrorDialog(message);
+          audioPlayer.play(AssetSource('assets/audio/beep_error.mp3'));
+          setState(() => isLoading = false);
+        }
       } else {
         throw Exception('Failed to call API: ${response.statusCode}');
       }
@@ -80,6 +104,8 @@ class _ReportPageState extends State<ReportPage> {
         isLoading = false;
         isSuccess = false;
       });
+      _showErrorDialog(error.toString());
+      audioPlayer.play(AssetSource('assets/audio/beep_error.mp3'));
     }
   }
 
@@ -96,32 +122,62 @@ class _ReportPageState extends State<ReportPage> {
                     : Colors.red,
           ),
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('QR Result: ${widget.qrResult}'),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // Show dialog with QR content
-                    _showQRContentDialog(widget.qrResult);
-                  },
-                  child: Text('Show QR Content'),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    widget
-                        .onBack(); // Call the callback function to reset the flag
-                    Navigator.pop(context);
-                  },
-                  child: Text('Next'),
-                ),
-              ],
-            ),
+            child: isLoading
+                ? CircularProgressIndicator()
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${widget.qrResult}',
+                              style:
+                                  TextStyle(fontSize: 24, color: Colors.white),
+                            ),
+                            if (position.isNotEmpty)
+                              Text('Position: $position',
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.white)),
+                            SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          widget.onBack();
+                          Navigator.pop(context);
+                        },
+                        child: Text('Next'),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showResponseDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('API Response'),
+          content: Text(responseMessage),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onBack();
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -138,6 +194,28 @@ class _ReportPageState extends State<ReportPage> {
                 Navigator.of(context).pop();
               },
               child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Error"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Navigator.of(context).pop();
+                // widget.onBack();
+                Navigator.pop(context);
+              },
+              child: Text("OK"),
             ),
           ],
         );
