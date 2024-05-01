@@ -1,6 +1,6 @@
 {
-    "name": "who8_ios",
-    "short_name": "who8_ios",
+    "name": "test_flutter",
+    "short_name": "test_flutter",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

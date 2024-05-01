@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:who8_ios/pages/QRScanPage.dart';
+import 'pages/QRScanPage.dart';
 import 'pages/QrReader.dart';
 import 'pages/LoginPage.dart';
 import 'pages/MealSelectionPage.dart';

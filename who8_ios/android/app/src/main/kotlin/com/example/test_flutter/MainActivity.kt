@@ -1,4 +1,4 @@
-package com.example.who8_ios
+package com.example.test_flutter
 
 import io.flutter.embedding.android.FlutterActivity
 
