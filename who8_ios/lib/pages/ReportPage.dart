@@ -117,50 +117,69 @@ class _ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            color: isLoading
-                ? Colors.black
-                : isSuccess
-                    ? Colors.green
-                    : Colors.red,
-          ),
-          Center(
-            child: isLoading
-                ? CircularProgressIndicator()
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              isLoading
-                                  ? '${widget.qrResult}'
-                                  : responseMessage,
-                              style:
-                                  TextStyle(fontSize: 24, color: Colors.white),
-                              textAlign: TextAlign
-                                  .center, // Align text to center horizontally
-                            ),
-                            SizedBox(height: 20),
-                          ],
+    return WillPopScope(
+      onWillPop: () async {
+        widget.onBack();
+        return true;
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Container(
+              color: isLoading
+                  ? Colors.black
+                  : isSuccess
+                      ? Colors.green
+                      : Colors.red,
+            ),
+            Center(
+              child: isLoading
+                  ? CircularProgressIndicator()
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isLoading
+                                    ? '${widget.qrResult}'
+                                    : responseMessage,
+                                style: TextStyle(
+                                    fontSize: 24, color: Colors.white),
+                                textAlign: TextAlign
+                                    .center, // Align text to center horizontally
+                              ),
+                              SizedBox(height: 20),
+                            ],
+                          ),
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          widget.onBack();
-                          Navigator.pop(context);
-                        },
-                        child: Text('Next'),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
+                        SizedBox(
+                            // Wrap the button with SizedBox
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                widget.onBack();
+                                Navigator.pop(context);
+                                // Navigator.of(context).pop(); // Close the dialog
+                                // Navigator.pushReplacementNamed(
+                                //     context, '/qrreader');
+                                // widget.onBack();
+                              },
+                              child: Text(
+                                'Next',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF131432),
+                              ),
+                            )),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

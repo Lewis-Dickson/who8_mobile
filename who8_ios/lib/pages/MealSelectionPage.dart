@@ -59,18 +59,25 @@ class _MealSelectorState extends State<MealSelectionPage> {
             padding: const EdgeInsets.all(16.0),
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: ElevatedButton(
-                onPressed: () async {
-                  var selectedMeal =
-                      isBreakfastSelected ? 'Lunch' : 'Breakfast';
-                  await SharedPreferencesService.saveSelectedMeal(selectedMeal);
-                  Navigator.of(context).pop();
-                  Navigator.pushNamed(context, '/qrreader');
-                },
-                child: Text('Next'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18),
+              child: SizedBox(
+                // Wrap the button with SizedBox
+                width: double.infinity, // Set width to fill the parent's width
+                child: ElevatedButton(
+                  onPressed: () async {
+                    var selectedMeal =
+                        isBreakfastSelected ? 'Lunch' : 'Breakfast';
+                    await SharedPreferencesService.saveSelectedMeal(
+                        selectedMeal);
+                    Navigator.of(context).pop();
+                    Navigator.pushNamed(context, '/qrreader');
+                  },
+                  child: Text(
+                    'Next',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF131432),
+                  ),
                 ),
               ),
             ),
