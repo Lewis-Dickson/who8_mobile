@@ -22,6 +22,15 @@ class _QrReaderState extends State<QrReader> {
   bool redirectedToReportPage = false;
 
   @override
+  void initState() {
+    super.initState();
+    isBreakfastSelected =
+        SharedPreferencesService.getSelectedMeal() == "Breakfast"
+            ? false
+            : true;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[800],
@@ -130,7 +139,8 @@ class _QrReaderState extends State<QrReader> {
             TextButton(
               child: Text('Verify'),
               onPressed: () {
-                _navigateToReportPage(_textFieldController.text);
+                Navigator.pop(context);
+                _navigateToReportPage(_textFieldController.text, "Manual");
               },
             ),
           ],
@@ -144,25 +154,28 @@ class _QrReaderState extends State<QrReader> {
     controller.scannedDataStream.listen((scanData) {
       if (!redirectedToReportPage) {
         // Check if redirection already occurred
-        _navigateToReportPage(scanData.code!);
+        _navigateToReportPage(scanData.code!, "QR");
       }
     });
   }
 
-  void _navigateToReportPage(String qrCode) {
+  void _navigateToReportPage(String qrCode, String method) async {
     setState(() {
       redirectedToReportPage = true; // Set the flag to true
     });
+    var selectedMeal = isBreakfastSelected ? 'Lunch' : 'Breakfast';
+    await SharedPreferencesService.saveSelectedMeal(selectedMeal);
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ReportPage(
           qrResult: qrCode,
           onBack: () {
-            setState(
-                () {}); // Put any state reset or updates here as needed when returning from ReportPage
+            setState(() {
+              redirectedToReportPage = false;
+            }); // Put any state reset or updates here as needed when returning from ReportPage
           },
-          scanMethod: 'QR',
+          scanMethod: method,
         ),
       ),
     );

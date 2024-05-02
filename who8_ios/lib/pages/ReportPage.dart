@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -60,6 +61,7 @@ class _ReportPageState extends State<ReportPage> {
         'login_info':
             json.encode(await SharedPreferencesService.getLoginInfo()),
         'token': token,
+        'platform': Platform.isAndroid ? 'Android' : 'iOS'
       };
 
       // Replace the URL with your actual backend API endpoint
@@ -82,12 +84,17 @@ class _ReportPageState extends State<ReportPage> {
         var jsonResponse = jsonDecode(response.body);
         String status = jsonResponse['status'];
         String message = jsonResponse['message'];
-        position = jsonResponse['position'];
+        if (jsonResponse.containsKey('position')) {
+          position = jsonResponse['position'];
+        } else {
+          position = '';
+        }
         if (status == 'success') {
           audioPlayer.play(AssetSource('assets/audio/beep_approved.mp3'));
           setState(() {
             isLoading = false;
             responseMessage = message;
+            isSuccess = true;
           });
         } else {
           _showErrorDialog(message);
@@ -99,7 +106,6 @@ class _ReportPageState extends State<ReportPage> {
       }
     } catch (error) {
       print('Error calling API: $error');
-      // Handle error state here
       setState(() {
         isLoading = false;
         isSuccess = false;
@@ -132,14 +138,14 @@ class _ReportPageState extends State<ReportPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              '${widget.qrResult}',
+                              isLoading
+                                  ? '${widget.qrResult}'
+                                  : responseMessage,
                               style:
                                   TextStyle(fontSize: 24, color: Colors.white),
+                              textAlign: TextAlign
+                                  .center, // Align text to center horizontally
                             ),
-                            if (position.isNotEmpty)
-                              Text('Position: $position',
-                                  style: TextStyle(
-                                      fontSize: 20, color: Colors.white)),
                             SizedBox(height: 20),
                           ],
                         ),
@@ -211,8 +217,8 @@ class _ReportPageState extends State<ReportPage> {
           actions: [
             TextButton(
               onPressed: () {
-                // Navigator.of(context).pop();
-                // widget.onBack();
+                Navigator.of(context).pop();
+                widget.onBack();
                 Navigator.pop(context);
               },
               child: Text("OK"),

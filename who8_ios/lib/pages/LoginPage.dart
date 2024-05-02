@@ -193,6 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: _passwordController,
               style: TextStyle(color: Colors.white),
+              obscureText:
+                  true, // Set this property to true to hide the entered text
               decoration: InputDecoration(
                 hintText: 'Password',
                 hintStyle: TextStyle(color: Colors.white70),

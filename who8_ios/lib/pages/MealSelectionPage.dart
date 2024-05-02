@@ -64,6 +64,7 @@ class _MealSelectorState extends State<MealSelectionPage> {
                   var selectedMeal =
                       isBreakfastSelected ? 'Lunch' : 'Breakfast';
                   await SharedPreferencesService.saveSelectedMeal(selectedMeal);
+                  Navigator.of(context).pop();
                   Navigator.pushNamed(context, '/qrreader');
                 },
                 child: Text('Next'),
