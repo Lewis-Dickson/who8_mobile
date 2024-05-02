@@ -117,10 +117,11 @@ class _ReportPageState extends State<ReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) async {
         widget.onBack();
-        return true;
+        Navigator.pushReplacementNamed(context, '/qrreader');
       },
       child: Scaffold(
         body: Stack(
