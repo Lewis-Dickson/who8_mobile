@@ -162,7 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _projectController,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Project',
+                labelText: 'Project', // This is used by screen readers
+                hintText: 'Enter your project name',
                 hintStyle: TextStyle(color: Colors.white70),
                 border: OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
@@ -178,7 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _emailController,
               style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Email',
+                labelText: 'Email', // This is used by screen readers
+                hintText: 'Enter your email',
                 hintStyle: TextStyle(color: Colors.white70),
                 border: OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
@@ -196,7 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText:
                   true, // Set this property to true to hide the entered text
               decoration: InputDecoration(
-                hintText: 'Password',
+                labelText: 'Password', // This is used by screen readers
+                hintText: 'Enter your password',
                 hintStyle: TextStyle(color: Colors.white70),
                 border: OutlineInputBorder(),
                 enabledBorder: OutlineInputBorder(
