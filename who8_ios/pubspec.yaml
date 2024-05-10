@@ -41,6 +41,7 @@ dependencies:
   http: ^1.2.1
   mobile_number: ^2.1.1
   audioplayers: ^6.0.0
+  audioplayers_darwin: ^6.0.0
 
 dev_dependencies:
   flutter_test:
