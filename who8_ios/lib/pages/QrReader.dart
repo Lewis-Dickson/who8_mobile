@@ -24,10 +24,15 @@ class _QrReaderState extends State<QrReader> {
   @override
   void initState() {
     super.initState();
-    isBreakfastSelected =
-        SharedPreferencesService.getSelectedMeal() == "Breakfast"
-            ? false
-            : true;
+    _loadSelectedMeal();
+  }
+
+  Future<void> _loadSelectedMeal() async {
+    bool selectedMealIsBreakfast =
+        await SharedPreferencesService.getSelectedMeal() == "Lunch";
+    setState(() {
+      isBreakfastSelected = selectedMealIsBreakfast;
+    });
   }
 
   @override
@@ -112,10 +117,43 @@ class _QrReaderState extends State<QrReader> {
   }
 
   void _handleSignOut() async {
-    await SharedPreferencesService.clearAllCredentials();
-    Navigator.of(context).pushAndRemoveUntil(
+    bool confirm = await _showSignOutDialog();
+    if (confirm) {
+      await SharedPreferencesService.clearAllCredentials();
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => LoginScreen()),
-        (route) => false);
+        (route) => false,
+      );
+    }
+  }
+
+  Future<bool> _showSignOutDialog() async {
+    return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Sign Out"),
+              content: Text("Are you sure you want to sign out?"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('No'),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pop(false); // Dismiss the dialog and returns false
+                  },
+                ),
+                TextButton(
+                  child: Text('Yes'),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pop(true); // Dismiss the dialog and returns true
+                  },
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // In case the dialog is dismissed by tapping outside of it
   }
 
   void _showDialog() {
