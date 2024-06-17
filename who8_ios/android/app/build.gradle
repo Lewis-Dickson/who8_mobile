@@ -13,13 +13,13 @@ if (localPropertiesFile.exists()) {
 }
 
 // def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-def flutterVersionCode = '22'
+def flutterVersionCode = '108'
 // if (flutterVersionCode == null) {
 //     flutterVersionCode = '2'
 // }
 
 // def flutterVersionName = localProperties.getProperty('flutter.versionName')
-def flutterVersionName = '2.2.0'
+def flutterVersionName = '1.0.8'
 // if (flutterVersionName == null) {
 //     flutterVersionName = '2.0.1'
 // }

@@ -84,21 +84,42 @@ class _LoginScreenState extends State<LoginScreen> {
       'phone_number': phoneNumber ?? '',
       'version': Platform.isAndroid ? 'Android' : 'iOS'
     });
+    try {
+      if (response.statusCode == 200) {
+        // Parse token from the response
+        var responseData = json.decode(response.body);
+        String token = responseData['token'];
 
-    if (response.statusCode == 200) {
-      // Parse token from the response
-      var responseData = json.decode(response.body);
-      String token = responseData['token'];
+        // Save credentials and token
+        _saveCredentials(token);
 
-      // Save credentials and token
-      _saveCredentials(token);
+        // Close login page after successful login
+        Navigator.of(context).pop();
 
-      // Close login page after successful login
-      Navigator.of(context).pop();
-
-      // Redirect to meal selection page
-      Navigator.pushNamed(context, '/mealSelect');
-    } else {
+        // Redirect to meal selection page
+        Navigator.pushNamed(context, '/mealSelect');
+      } else {
+        var responseData = json.decode(response.body);
+        String msg = responseData['msg'];
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: Text(msg), // Removed the `const` here
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } on Exception catch (e) {
       showDialog(
         context: context,
         builder: (context) {
@@ -219,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
             bottom: 16.0,
             right: 16.0,
             child: Text(
-              'Version 1.0.6',
+              'Version 1.0.8',
               style: TextStyle(color: Colors.white),
             ),
           ),
